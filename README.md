@@ -1,4 +1,5 @@
 # 匯入 WHO COVID-19 Open Data
+
 ```text
 MariaDB [covid19]> LOAD DATA LOCAL INFILE 'C:/Users/USER/Downloads/WHO-COVID-19-global-daily-data-2022.csv'
     -> INTO TABLE who_covid19
@@ -9,6 +10,7 @@ MariaDB [covid19]> LOAD DATA LOCAL INFILE 'C:/Users/USER/Downloads/WHO-COVID-19-
     -> IGNORE 1 LINES;
 Query OK, 262320 rows affected, 65535 warnings (0.661 sec)
 Records: 262320  Deleted: 0  Skipped: 0  Warnings: 224726
+
 MariaDB [(none)]> USE covid19;
 Database changed
 MariaDB [covid19]> CREATE TABLE who_covid19 (
@@ -46,9 +48,10 @@ MariaDB [covid19]> SELECT count(*) FROM who_covid19;
 +----------+
 1 row in set (0.035 sec)
 ```
-````[cite: 2, 3]
 
-# COVID-19 資料查詢與練習紀錄
+---
+
+# SELECT 資料查詢
 
 ## 1. 查詢所有的 WHO 區域別 (who_region)
 ```sql
@@ -161,7 +164,8 @@ LIMIT 6;
 ---
 
 ## 6. 查詢累計確診前 5 大國家的所有歷史資料 (排除 ERROR 1235 限制)
-```
+
+```text
 MariaDB [covid19]> SELECT * 
     -> FROM who_covid19 
     -> WHERE country_code IN 
@@ -174,6 +178,7 @@ MariaDB [covid19]> SELECT *
     -> ); 
 ERROR 1235 (42000): This version of MariaDB doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'
 ```
+
 > **錯誤紀錄：**
 > 直接在 `IN (...)` 子查詢內使用 `LIMIT` 會觸發 MariaDB 限制：  
 > `ERROR 1235 (42000): This version of MariaDB doesn't yet support 'LIMIT & IN/ALL/ANY/SOME subquery'`
@@ -191,8 +196,43 @@ JOIN (
 ) top5 ON w.country_code = top5.country_code
 ORDER BY w.country_code, w.date_reported;
 ```
+
 **嘗試紀錄：**
-因為資料太多筆所以很難跑完然後會一直有不同資料跳出來
+因為資料太多筆所以很難跑完，然後會一直有不同資料跳出來。
 
-#VIEW 檢視表
+---
 
+# VIEW 檢視表
+
+```text
+MariaDB [covid19]> CREATE VIEW vw_country AS
+    ->      SELECT DISTINCT country_code, country
+    ->      FROM who_covid19
+    ->      ORDER BY country_code;
+Query OK, 0 rows affected (0.011 sec)
+
+MariaDB [covid19]> SELECT *
+    -> FROM vw_country;
++--------------+------------------------------------------------------------------------+
+| country_code | country                                                                |
++--------------+------------------------------------------------------------------------+
+| AD           | Andorra                                                                |
+| AE           | United Arab Emirates                                                   |
+| AF           | Afghanistan                                                            |
+| AG           | Antigua and Barbuda                                                    |
+| AI           | Anguilla                                                               |
+| AL           | Albania                                                                |
+...
+| XI           | International conveyance (Kiribati)                                    |
+| XJ           | International conveyance (Diamond Princess)                            |
+| XK           | Kosovo (in accordance with UN Security Council Resolution 1244 (1999)) |
+| XL           | International commercial vessel                                        |
+| YE           | Yemen                                                                  |
+| YT           | Mayotte                                                                |
+| ZA           | South Africa                                                           |
+| ZM           | Zambia                                                                 |
+| ZW           | Zimbabwe                                                               |
++--------------+------------------------------------------------------------------------+
+240 rows in set (0.277 sec)
+```
+````[cite: 2, 3]
